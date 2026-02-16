@@ -1,0 +1,5 @@
+{
+  "name": "Raporto - Clockify to Word",
+  "description": "A tool to fetch Clockify time entries, summarize them using Gemini AI, and export a professional Word report based on a specific PTE template.",
+  "requestFramePermissions": []
+}
