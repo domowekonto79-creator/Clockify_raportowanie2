@@ -10,6 +10,7 @@ import {
   parseDuration 
 } from './services/clockify';
 import { generateWordDocument } from './services/docxGenerator';
+import { generateUZExcel } from './services/excelGenerator';
 import SettingsModal from './components/SettingsModal';
 import { 
   Loader2, 
@@ -17,7 +18,8 @@ import {
   RefreshCw, 
   AlertCircle,
   Clock,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Filter
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { pl } from 'date-fns/locale';
@@ -49,13 +51,22 @@ function App() {
   const handleSaveConfig = (newConfig: AppConfig) => {
     setConfig(newConfig);
     localStorage.setItem('raporto_config', JSON.stringify(newConfig));
+    // If we have data, re-process it with new config (e.g. project filter changed)
+    if (entries.length > 0) {
+        processEntries(entries, newConfig);
+    }
   };
 
-  const processEntries = (rawEntries: ClockifyTimeEntry[]) => {
+  const processEntries = (rawEntries: ClockifyTimeEntry[], currentConfig: AppConfig = config) => {
     // Group by Date
     const grouped: { [date: string]: { descriptions: string[], duration: number } } = {};
 
     rawEntries.forEach(entry => {
+      // Filter by Project if selected in config
+      if (currentConfig.selectedProjectId && entry.projectId !== currentConfig.selectedProjectId) {
+        return;
+      }
+
       const date = entry.timeInterval.start.split('T')[0];
       const duration = parseDuration(entry.timeInterval.duration);
       
@@ -109,18 +120,28 @@ function App() {
     }
   };
 
-  const handleExportWord = () => {
+  const handleExport = () => {
     if (reportData.length === 0) {
       setError("Brak danych do wyeksportowania.");
       return;
     }
     const reportDate = entries.length > 0 ? parseISO(entries[0].timeInterval.start) : new Date();
-    generateWordDocument(
-      reportData, 
-      config.contractorName, 
-      config.supervisorName,
-      reportDate
-    );
+    
+    // Conditional Export based on Supervisor / Company Name
+    if (config.supervisorName === 'Secureside') {
+        generateUZExcel(
+            reportData,
+            config.contractorName,
+            reportDate
+        );
+    } else {
+        generateWordDocument(
+            reportData, 
+            config.contractorName, 
+            config.supervisorName,
+            reportDate
+        );
+    }
   };
 
   const handleDescriptionChange = (index: number, val: string) => {
@@ -142,10 +163,11 @@ function App() {
           </div>
           <button 
             onClick={() => setIsSettingsOpen(true)}
-            className="p-2 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-full transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors border border-transparent hover:border-orange-100"
             title="Ustawienia"
           >
-            <SettingsIcon className="w-6 h-6" />
+            <span className="text-sm font-medium hidden sm:inline">Konfiguracja</span>
+            <SettingsIcon className="w-5 h-5" />
           </button>
         </div>
       </header>
@@ -163,6 +185,14 @@ function App() {
           </div>
 
           <div className="flex flex-wrap gap-3">
+             {/* Info about selected project */}
+             {config.selectedProjectId && (
+                <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm border border-blue-100">
+                    <Filter className="w-4 h-4" />
+                    <span>Filtrowanie: {config.supervisorName === 'Secureside' ? 'UZ (Secureside)' : 'Projekt Standard'}</span>
+                </div>
+             )}
+
             <button
               onClick={fetchData}
               disabled={loading}
@@ -173,12 +203,12 @@ function App() {
             </button>
 
             <button
-              onClick={handleExportWord}
+              onClick={handleExport}
               disabled={reportData.length === 0}
               className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-all font-medium disabled:opacity-50 shadow-sm shadow-orange-200"
             >
               <FileDown className="w-4 h-4" />
-              Zapisz do Worda
+              {config.supervisorName === 'Secureside' ? 'Zapisz do Excela' : 'Zapisz do Worda'}
             </button>
           </div>
         </div>
@@ -199,9 +229,10 @@ function App() {
                 <Clock className="w-8 h-8 text-gray-300" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-1">Brak danych</h3>
-              <p className="max-w-sm mx-auto">
+              <p className="max-w-sm mx-auto mb-2">
                 Skonfiguruj klucz API i kliknij "Pobierz z Clockify", aby zobaczyć wpisy z bieżącego miesiąca.
               </p>
+              {config.selectedProjectId && <p className="text-sm text-blue-500">Włączono filtrowanie po projekcie.</p>}
             </div>
           ) : (
             <div className="overflow-x-auto">

@@ -6,6 +6,12 @@ export interface ClockifyUser {
   defaultWorkspace: string;
 }
 
+export interface ClockifyProject {
+  id: string;
+  name: string;
+  clientId?: string;
+}
+
 export interface ClockifyTimeEntry {
   id: string;
   description: string;
@@ -28,4 +34,5 @@ export interface AppConfig {
   clockifyApiKey: string;
   contractorName: string;
   supervisorName: string;
+  selectedProjectId?: string;
 }

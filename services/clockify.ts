@@ -1,4 +1,4 @@
-import { ClockifyUser, ClockifyTimeEntry } from '../types';
+import { ClockifyUser, ClockifyTimeEntry, ClockifyProject } from '../types';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
 
 const API_BASE = 'https://api.clockify.me/api/v1';
@@ -12,6 +12,23 @@ export const validateClockifyKey = async (apiKey: string): Promise<ClockifyUser>
 
   if (!response.ok) {
     throw new Error('Nieprawidłowy klucz API Clockify');
+  }
+
+  return response.json();
+};
+
+export const fetchProjects = async (
+  apiKey: string,
+  workspaceId: string
+): Promise<ClockifyProject[]> => {
+  const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/projects?page-size=500`, {
+    headers: {
+      'X-Api-Key': apiKey,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Błąd pobierania listy projektów');
   }
 
   return response.json();
