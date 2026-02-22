@@ -37,12 +37,12 @@ export const fetchProjects = async (
 export const fetchCurrentMonthEntries = async (
   apiKey: string,
   workspaceId: string,
-  userId: string
+  userId: string,
+  date: Date = new Date()
 ): Promise<ClockifyTimeEntry[]> => {
-  const now = new Date();
-  // Ensure we get the full range for the current month in UTC/ISO
-  const start = startOfMonth(now).toISOString();
-  const end = endOfMonth(now).toISOString();
+  // Ensure we get the full range for the specified month in UTC/ISO
+  const start = startOfMonth(date).toISOString();
+  const end = endOfMonth(date).toISOString();
 
   const response = await fetch(
     `${API_BASE}/workspaces/${workspaceId}/user/${userId}/time-entries?start=${start}&end=${end}&page-size=5000`,

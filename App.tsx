@@ -38,6 +38,8 @@ function App() {
     return saved ? JSON.parse(saved) : DEFAULT_CONFIG;
   });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [entries, setEntries] = useState<ClockifyTimeEntry[]>([]);
   const [reportData, setReportData] = useState<DailyReportItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -107,10 +109,12 @@ function App() {
 
     try {
       const user = await validateClockifyKey(config.clockifyApiKey);
+      const targetDate = new Date(selectedYear, selectedMonth, 1);
       const data = await fetchCurrentMonthEntries(
         config.clockifyApiKey,
         user.activeWorkspace,
-        user.id
+        user.id,
+        targetDate
       );
       setEntries(data);
       processEntries(data);
@@ -127,7 +131,7 @@ function App() {
       setError("Brak danych do wyeksportowania.");
       return;
     }
-    const reportDate = entries.length > 0 ? parseISO(entries[0].timeInterval.start) : new Date();
+    const reportDate = new Date(selectedYear, selectedMonth, 1);
     
     // Conditional Export based on Supervisor / Company Name
     if (config.supervisorName === 'Secureside') {
@@ -178,15 +182,42 @@ function App() {
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         
         {/* Actions Bar */}
-        <div className="mb-8 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <div className="flex flex-col">
-             <h2 className="text-lg font-semibold text-gray-800">Bieżący Miesiąc</h2>
-             <p className="text-sm text-gray-500">
-                {format(new Date(), 'LLLL yyyy', { locale: pl })}
-             </p>
+        <div className="mb-8 flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex flex-col">
+               <h2 className="text-lg font-semibold text-gray-800">Okres raportu</h2>
+               <p className="text-sm text-gray-500">
+                  {format(new Date(selectedYear, selectedMonth, 1), 'LLLL yyyy', { locale: pl })}
+               </p>
+            </div>
+            
+            <div className="flex gap-2">
+              <select 
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+              >
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <option key={i} value={i}>
+                    {format(new Date(2024, i, 1), 'LLLL', { locale: pl })}
+                  </option>
+                ))}
+              </select>
+              
+              <select 
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+              >
+                {Array.from({ length: 5 }).map((_, i) => {
+                  const year = new Date().getFullYear() - 2 + i;
+                  return <option key={year} value={year}>{year}</option>;
+                })}
+              </select>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 w-full lg:w-auto">
              {/* Info about selected project */}
              {config.selectedProjectId && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm border border-blue-100 animate-in fade-in zoom-in duration-300">
@@ -249,7 +280,7 @@ function App() {
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-1">Brak danych</h3>
               <p className="max-w-sm mx-auto mb-2">
-                Skonfiguruj klucz API i kliknij "Pobierz z Clockify", aby zobaczyć wpisy z bieżącego miesiąca.
+                Skonfiguruj klucz API i kliknij "Pobierz z Clockify", aby zobaczyć wpisy z wybranego okresu.
               </p>
               {config.selectedProjectId && <p className="text-sm text-blue-500">Włączono filtrowanie po projekcie.</p>}
             </div>
