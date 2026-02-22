@@ -35,4 +35,5 @@ export interface AppConfig {
   contractorName: string;
   supervisorName: string;
   selectedProjectId?: string;
+  selectedProjectName?: string;
 }

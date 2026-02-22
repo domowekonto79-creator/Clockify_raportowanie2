@@ -19,7 +19,9 @@ import {
   AlertCircle,
   Clock,
   Settings as SettingsIcon,
-  Filter
+  Filter,
+  Pencil,
+  X
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { pl } from 'date-fns/locale';
@@ -187,11 +189,28 @@ function App() {
           <div className="flex flex-wrap gap-3">
              {/* Info about selected project */}
              {config.selectedProjectId && (
-                <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm border border-blue-100">
-                    <Filter className="w-4 h-4" />
-                    <span>Filtrowanie: {config.supervisorName === 'Secureside' ? 'UZ (Secureside)' : 'Projekt Standard'}</span>
+                <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm border border-blue-100 animate-in fade-in zoom-in duration-300">
+                    <Filter className="w-4 h-4 shrink-0" />
+                    <span className="font-medium truncate max-w-[120px] sm:max-w-[200px]">
+                        {config.selectedProjectName || (config.supervisorName === 'Secureside' ? 'UZ (Secureside)' : 'Projekt')}
+                    </span>
+                    <button 
+                        onClick={() => handleSaveConfig({...config, selectedProjectId: undefined, selectedProjectName: undefined})}
+                        className="ml-1 p-0.5 hover:bg-blue-100 rounded-full transition-colors"
+                        title="Wyczyść filtr"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
                 </div>
              )}
+
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:text-orange-600 transition-all font-medium"
+            >
+              <Filter className="w-4 h-4" />
+              <span className="hidden sm:inline">Filtruj</span>
+            </button>
 
             <button
               onClick={fetchData}
@@ -250,13 +269,16 @@ function App() {
                       <td className="p-4 align-top font-medium text-gray-700 whitespace-nowrap">
                         {item.date}
                       </td>
-                      <td className="p-4 align-top">
-                        <textarea
-                          className="w-full bg-transparent border-0 p-0 focus:ring-0 text-gray-700 resize-none overflow-hidden"
-                          rows={Math.max(2, Math.ceil(item.finalDescription.length / 80))}
-                          value={item.finalDescription}
-                          onChange={(e) => handleDescriptionChange(idx, e.target.value)}
-                        />
+                      <td className="p-4 align-top group/edit">
+                        <div className="relative">
+                          <textarea
+                            className="w-full bg-transparent border border-transparent hover:border-gray-200 hover:bg-white focus:bg-white focus:border-orange-300 focus:ring-2 focus:ring-orange-100 rounded-md p-2 -m-2 text-gray-700 resize-none overflow-hidden transition-all pr-8"
+                            rows={Math.max(2, Math.ceil(item.finalDescription.length / 80))}
+                            value={item.finalDescription}
+                            onChange={(e) => handleDescriptionChange(idx, e.target.value)}
+                          />
+                          <Pencil className="w-4 h-4 text-gray-400 absolute right-0 top-0 opacity-0 group-hover/edit:opacity-100 pointer-events-none transition-opacity" />
+                        </div>
                       </td>
                       <td className="p-4 align-top text-right font-mono text-gray-600">
                         {Math.round(item.totalHours)}

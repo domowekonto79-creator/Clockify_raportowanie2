@@ -269,7 +269,7 @@ export const generateUZDocument = async (
     for (let day = 1; day <= daysInMonth; day++) {
         const hours = itemsMap.get(day);
         tableRows.push(new TableRow({
-            height: { value: 300, rule: HeightRule.AT_LEAST }, // Ensure some height
+            height: { value: 300, rule: HeightRule.ATLEAST }, // Ensure some height
             children: [
                 new TableCell({
                     children: [new Paragraph({ text: day.toString(), alignment: AlignmentType.CENTER, run: rowCellStyles })],

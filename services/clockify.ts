@@ -21,7 +21,7 @@ export const fetchProjects = async (
   apiKey: string,
   workspaceId: string
 ): Promise<ClockifyProject[]> => {
-  const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/projects?page-size=500`, {
+  const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/projects?page-size=500&archived=false`, {
     headers: {
       'X-Api-Key': apiKey,
     },

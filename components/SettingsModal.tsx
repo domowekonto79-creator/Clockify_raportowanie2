@@ -34,8 +34,10 @@ const SettingsModal: React.FC<Props> = ({ isOpen, onClose, config, onSave }) => 
     if (name === 'selectedProjectId') {
         const selectedProject = projects.find(p => p.id === value);
         let newSupervisorName = formData.supervisorName;
+        let newProjectName = '';
 
         if (selectedProject) {
+            newProjectName = selectedProject.name;
             const projectNameLower = selectedProject.name.toLowerCase();
             if (projectNameLower.includes('pte')) {
                 newSupervisorName = 'PTE';
@@ -47,6 +49,7 @@ const SettingsModal: React.FC<Props> = ({ isOpen, onClose, config, onSave }) => 
         setFormData((prev) => ({ 
             ...prev, 
             [name]: value,
+            selectedProjectName: newProjectName,
             supervisorName: newSupervisorName 
         }));
     } else {
